@@ -24,109 +24,156 @@ warnings.filterwarnings("ignore")
 logging.getLogger("transformers").setLevel(logging.ERROR)
 
 # Streamlit Page Config
-st.set_page_config(page_title="Neura Thread", layout="centered")
+st.set_page_config(page_title="RAG Chatbot", layout="centered")
 
 # --- Viewport for Mobile Responsiveness ---
 st.markdown("""
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 """, unsafe_allow_html=True)
+
+# --- Logo Container ---
+try:
+    st.image("./logo.png", use_column_width=False, width=200)
+except FileNotFoundError:
+    st.error("Logo image not found. Please ensure 'logo.png' is in the project directory.")
+
 # --- Custom CSS for Dark UI and Animation ---
 st.markdown("""
     <style>
+    @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;700;800&family=Poppins:wght@300&display=swap');
+
     body {
-        background-color: #121212;
-        color: #E0E0E0;
+        background-color: #2A2A2A;
+        color: #E0E0E0 !important;
     }
     .main {
-        background-color: #1E1E1E;
+        background-color: #3A3A3A;
+        border-radius: 10px;
+        box-shadow: 0 2px 10px rgba(0, 0, 0, 0.3);
+        margin-top: 20px; /* Space below logo */
     }
 
-    /* Typewriter Header */
-    .typewriter-container {
+    /* Logo Container */
+    .stImage {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100px; /* Fixed height for vertical centering */
+        width: 100%;
+        margin-bottom: 10px;
+    }
+
+    /* Fade-In Header */
+    .fadein-container {
         display: flex;
         justify-content: center;
         align-items: center;
         margin-bottom: 20px;
     }
 
-    .typewriter-text {
-        overflow: hidden;
-        border-right: .15em solid #FF7E00;
-        white-space: nowrap;
-        margin: 0 auto;
-        letter-spacing: .08em;
-        animation: 
-            typing 4s steps(40, end),
-            blink-caret .75s step-end infinite;
-        font-size: 20px;
-        font-family: 'Segoe UI', monospace;
-        color: white;
+    .fadein-text {
+        opacity: 0;
+        animation: fadeIn 2s ease-in-out forwards;
+        font-size: 26px;
+        font-family: 'Roboto', sans-serif;
+        color: #E0E0E0 !important;
+        font-weight: 800;
+        letter-spacing: 0.01em;
+        text-align: center;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
+        max-width: 90%;
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
     }
 
-    @keyframes typing {
-        from { width: 0 }
-        to { width: 100% }
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(10px); }
+        to { opacity: 1; transform: translateY(0); }
     }
 
-    @keyframes blink-caret {
-        from, to { border-color: transparent }
-        50% { border-color: #FF7E00; }
-    }
-
-    /* Title Pulse Animation */
+    /* Title Scale Animation */
     .stApp h1 {
-        animation: pulse 4s ease-in-out infinite;
-        color: white;
-        font-family: 'Segoe UI', sans-serif;
+        animation: scale 3s ease-in-out infinite;
+        color: #E0E0E0 !important;
+        font-family: 'Poppins', sans-serif;
+        font-weight: 300;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3);
     }
 
-    @keyframes pulse {
-        0% { color: white; }
-        50% { color: #DDDDDD; }
-        100% { color: white; }
+    @keyframes scale {
+        0%, 100% { transform: scale(1); }
+        50% { transform: scale(1.05); }
     }
 
     /* Input Glow */
+    input {
+        color: #FFFFFF !important;
+        background-color: #4A4A4A !important;
+    }
+    input::placeholder {
+        color: #BBBBBB !important;
+    }
     input:focus {
-        border: 2px solid #00BFFF !important;
-        box-shadow: 0 0 6px #00BFFF;
+        border: 2px solid #34C759 !important;
+        box-shadow: 0 0 8px rgba(52, 199, 89, 0.3);
         transition: all 0.3s ease-in-out;
     }
 
     /* Chat Bubbles */
-    .stChatMessage {
-        background-color: #222 !important;
+    .stChatMessage[data-testid="stChatMessage-user"] {
+        background-color: #4A6FFA !important;
+        border-radius: 12px;
+        padding: 10px;
+        margin: 5px 0;
+        color: #FFFFFF !important;
+    }
+    .stChatMessage[data-testid="stChatMessage-assistant"] {
+        background-color: #4CAF50 !important;
+        border-radius: 12px;
+        padding: 10px;
+        margin: 5px 0;
+        color: #FFFFFF !important;
+    }
+
+    /* Download Button */
+    .stDownloadButton button {
+        background-color: #1A73E8;
+        color: #FFFFFF !important;
         border-radius: 8px;
-        padding: 8px;
+        padding: 8px 16px;
     }
+
     /* Responsive tweaks for mobile screens */
-@media (max-width: 600px) {
-    .typewriter-text {
-        font-size: 14px;
-        letter-spacing: 0.05em;
+    @media (max-width: 600px) {
+        .fadein-text {
+            font-size: 18px;
+            letter-spacing: 0.005em;
+        }
+        .stApp h1 {
+            font-size: 24px;
+        }
+        .main, .block-container {
+            padding: 15px;
+        }
+        .stImage {
+            height: 80px;
+        }
+        .stImage img {
+            width: 150px !important;
+        }
     }
-
-    .stApp h1 {
-        font-size: 20px;
-    }
-
-    .main, .block-container {
-        padding-left: 10px;
-        padding-right: 10px;
-    }
-}
-
     </style>
 """, unsafe_allow_html=True)
 
 # --- Animated Header ---
 st.markdown("""
-    <div class="typewriter-container">
-        <div class="typewriter-text">PDC RAG CHATBOT BY MUZAMMIL YASIR</div>
+    <div class="fadein-container">
+        <div class="fadein-text">RAG Chatbot by Muhammad Aaqib Shaikh(58621) & Muhammad Saqib Shaikh(58620)</div>
     </div>
 """, unsafe_allow_html=True)
 
-st.title("Ask Neura Thread")
+st.title("RAG Chatbot")
 
 # --- Chat History Setup ---
 if 'messages' not in st.session_state:
@@ -135,19 +182,40 @@ if 'messages' not in st.session_state:
 for message in st.session_state.messages:
     st.chat_message(message['role']).markdown(message['content'])
 
-# --- Load PDF and Create Vector Store ---
+# --- Load Vector Store with Progress Indicator ---
 @st.cache_resource
 def get_vectorstore():
-    pdf_name = "./reflexion.pdf"
-    loaders = [PyPDFLoader(pdf_name)]
-    index = VectorstoreIndexCreator(
-        embedding=HuggingFaceEmbeddings(model_name='all-MiniLM-L12-v2'),
-        text_splitter=RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
-    ).from_loaders(loaders)
-    return index.vectorstore
+    with st.spinner("Loading document..."):
+        pdf_name = "./reflexion.pdf"
+        loaders = [PyPDFLoader(pdf_name)]
+        index = VectorstoreIndexCreator(
+            embedding=HuggingFaceEmbeddings(model_name='all-MiniLM-L6-v2'),
+            text_splitter=RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+        ).from_loaders(loaders)
+        st.info("Document loaded successfully!")
+        return index.vectorstore
+
+# --- Optional: Precomputed Vector Store (Commented for reference) ---
+# from langchain.vectorstores import FAISS
+# def load_or_create_vectorstore():
+#     vectorstore_path = "./vectorstore"
+#     if os.path.exists(vectorstore_path):
+#         embeddings = HuggingFaceEmbeddings(model_name='all-MiniLM-L6-v2')
+#         return FAISS.load_local(vectorstore_path, embeddings)
+#     else:
+#         with st.spinner("Creating vector store..."):
+#             pdf_name = "./reflexion.pdf"
+#             loaders = [PyPDFLoader(pdf_name)]
+#             index = VectorstoreIndexCreator(
+#                 embedding=HuggingFaceEmbeddings(model_name='all-MiniLM-L6-v2'),
+#                 text_splitter=RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=50)
+#             ).from_loaders(loaders)
+#             index.vectorstore.save_local(vectorstore_path)
+#             st.info("Vector store created and saved!")
+#             return index.vectorstore
 
 # --- Chat Input ---
-prompt = st.chat_input("Pass your prompt here")
+prompt = st.chat_input("Enter your question here")
 
 if prompt:
     st.chat_message("user").markdown(prompt)
@@ -199,7 +267,7 @@ if st.session_state.get("messages"):
         return "\n\n".join(chat_lines)
 
     st.download_button(
-        label="📥 Download Chat History with Timestamps",
+        label="📥 Save Chat History",
         data=format_chat(),
         file_name="chat_history.txt",
         mime="text/plain"
